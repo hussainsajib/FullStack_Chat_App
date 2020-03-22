@@ -18,10 +18,21 @@ io.on('connection', (socket)=>{
         
         if(error) return callback(error);
 
+        // letting the user who joined know that he/she has joined the room
         socket.emit('message', { user: 'admin', text: `${user.name} welcome to the room ${user.room}`});
+        // letting everyone else in the room know that a new user has joined
+        socket.broadcast.to(user.room).emit('message', { user: 'admin', text: `${user.name} has joined!`});
 
+        // adding a user to a particular room
         socket.join(user.room);
 
+        callback();
+    });
+
+    socket.on('sendMessage',(message, callback)=>{
+        const user = getUser(socket.id);
+        io.to(user.room).emit('message',{ user: user.name, text: message });
+        callback();
     });
 
     socket.on('disconnect',()=>{
